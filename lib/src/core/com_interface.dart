@@ -24,9 +24,9 @@ class ComInterface {
       return _handleInvalidRequest(request);
     }
 
-    final connectivityResult = await _connectivity.checkConnectivity();
+    final isConnectedToNetwork = await hasInternetConnection();
 
-    if (connectivityResult == ConnectivityResult.none) {
+    if (!isConnectedToNetwork) {
       return _handleNoConnectivity(request);
     }
 
@@ -239,8 +239,10 @@ class ComInterface {
   }
 
   Future<bool> hasInternetConnection() async {
-    final connectionStatus = await _connectivity.checkConnectivity();
-    return connectionStatus != ConnectivityResult.none;
+    final results = await _connectivity.checkConnectivity();
+    final isConnected =
+        results.where((result) => result != ConnectivityResult.none).isNotEmpty;
+    return isConnected;
   }
 
   Connectivity getConnectivityInstance() {
