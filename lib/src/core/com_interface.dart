@@ -9,6 +9,11 @@ class ComInterface {
 
   final Connectivity _connectivity;
 
+  static ConnectionQuality _currentQuality = ConnectionQuality.good;
+  static final List<int> _recentDurations = [];
+
+  ConnectionQuality getConnectionQuality() => _currentQuality;
+
   ComConfig config = ComConfig(onConnectionLose: () {
     Print.red('NO CONNECTIVITY', name: apiComPackageName);
   });
@@ -130,7 +135,11 @@ class ComInterface {
       encoding: config.encoding,
     );
 
-    _printResult(rawResponse, stopwatch);
+    _printResult(
+      rawResponse,
+      stopwatch,
+      isLargePayload: request.isLargePayload ?? false,
+    );
 
     return ComResponse<Model>.fromResponse(
       request: request,
@@ -217,18 +226,45 @@ class ComInterface {
     );
   }
 
-  void _printResult<Model>(
+  static void _printResult<Model>(
     http.Response response,
-    Stopwatch stopwatch,
-  ) {
+    Stopwatch stopwatch, {
+    bool isLargePayload = false,
+  }) {
+    final durationMs = stopwatch.elapsedMilliseconds;
+
     final statusMessagePayload =
-        'METHOD: ${response.request!.method}, STATUS: ${response.statusCode}, URL: ${response.request!.url}  ${stopwatch.elapsedMilliseconds} ms';
+        'METHOD: ${response.request!.method}, STATUS: ${response.statusCode}, URL: ${response.request!.url}  $durationMs ms';
 
     if (response.statusCode == 200) {
       Print.green(statusMessagePayload, name: apiComPackageName);
     } else {
       Print.red(statusMessagePayload, name: apiComPackageName);
       Print.blue(response.body, name: apiComPackageName);
+    }
+
+    if (!isLargePayload) {
+      _updateConnectionQuality(durationMs, response.statusCode);
+    }
+  }
+
+  static void _updateConnectionQuality(int durationMs, int statusCode) {
+    if (statusCode == 500 || statusCode == 503) {
+      return;
+    }
+
+    _recentDurations.add(durationMs);
+    if (_recentDurations.length > 5) {
+      _recentDurations.removeAt(0);
+    }
+
+    final avg =
+        _recentDurations.reduce((a, b) => a + b) / _recentDurations.length;
+
+    if (avg > 5000) {
+      _currentQuality = ConnectionQuality.poor;
+    } else {
+      _currentQuality = ConnectionQuality.good;
     }
   }
 

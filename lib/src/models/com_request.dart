@@ -15,6 +15,7 @@ class ComRequest<Model> {
     Map<String, String>? headers,
     this.skipOnConnectionLoseAction = false,
     this.ignorePreDecoder = false,
+    this.isLargePayload,
   }) : _headers = headers;
 
   final HttpMethod method;
@@ -77,6 +78,8 @@ class ComRequest<Model> {
   /// if this parameter is true than decoding of rawPayload will ignore [ComConfig:preDecoder] function
   final bool ignorePreDecoder;
 
+  final bool? isLargePayload;
+
   String getUrl() {
     if (host == null) {
       throw Exception('Host is null');
@@ -112,6 +115,7 @@ class ComRequest<Model> {
     Map<String, String>? headers,
     bool? skipOnConnectionLoseAction,
     bool? ignorePreDecoder,
+    bool? isLargePayload,
   }) {
     return ComRequest<Model>(
       protocol: protocol ?? this.protocol,
@@ -125,6 +129,7 @@ class ComRequest<Model> {
       skipOnConnectionLoseAction:
           skipOnConnectionLoseAction ?? this.skipOnConnectionLoseAction,
       ignorePreDecoder: ignorePreDecoder ?? this.ignorePreDecoder,
+      isLargePayload: isLargePayload ?? this.isLargePayload,
     );
   }
 }

@@ -1,0 +1,4 @@
+enum ConnectionQuality {
+  good,
+  poor,
+}
