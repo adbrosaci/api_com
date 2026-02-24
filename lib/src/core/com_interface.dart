@@ -45,7 +45,7 @@ class ComInterface {
     }
 
     final connectivityResult = await _connectivity.checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
+    if (connectivityResult.contains(ConnectivityResult.none)) {
       Print.red('NO CONNECTIVITY | ${request.getUrl()}',
           name: apiComPackageName);
 
@@ -260,7 +260,7 @@ class ComInterface {
 
   Future<bool> hasInternetConnection() async {
     final connectionStatus = await _connectivity.checkConnectivity();
-    return connectionStatus != ConnectivityResult.none;
+    return !connectionStatus.contains(ConnectivityResult.none);
   }
 
   Connectivity getConnectivityInstance() {
