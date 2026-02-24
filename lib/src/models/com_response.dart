@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:api_com/api_com.dart';
 import 'package:api_com/src/core/com.dart';
+import 'package:api_com/src/utils/tracked_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:palestine_console/palestine_console.dart';
 
@@ -28,11 +29,24 @@ class ComResponse<Model> {
           decodedBody = preDecorder(decodedBody);
         }
 
+        // Wrap in TrackedMap so we can report the exact failing key path
+        TrackedMap.lastAccessedPath = null;
+        if (decodedBody is Map<String, dynamic>) {
+          decodedBody = TrackedMap(decodedBody);
+        }
+
         payload = request.decoder!(decodedBody, status) as Model?;
-      } catch (e) {
+      } catch (e, stackTrace) {
+        final failedKey = TrackedMap.lastAccessedPath;
         Print.red(
-            'Unable to decode payload. Error: ${Model.runtimeType} ${e.toString()}',
-            name: apiComPackageName);
+          'Unable to decode payload.\n'
+          '  Model: $Model\n'
+          '${failedKey != null ? '  Failed at key: $failedKey\n' : ''}'
+          '  URL: ${request.getUrl()}\n'
+          '  Error: $e\n'
+          '  StackTrace: $stackTrace',
+          name: apiComPackageName,
+        );
       }
     }
 

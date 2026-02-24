@@ -17,8 +17,9 @@ class ComInterface {
     http.Response response,
     Stopwatch stopwatch,
   ) {
+    final payloadSizeMB = response.bodyBytes.length / (1024 * 1024);
     final statusMessagePayload =
-        'METHOD: ${response.request!.method}, STATUS: ${response.statusCode}, URL: ${response.request!.url}  ${stopwatch.elapsedMilliseconds} ms';
+        'METHOD: ${response.request!.method}, STATUS: ${response.statusCode}, URL: ${response.request!.url}  ${stopwatch.elapsedMilliseconds} ms  ${payloadSizeMB.toStringAsFixed(3)} MB';
 
     if (response.statusCode == 200) {
       Print.green(statusMessagePayload, name: apiComPackageName);
@@ -44,7 +45,7 @@ class ComInterface {
     }
 
     final connectivityResult = await _connectivity.checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
+    if (connectivityResult.contains(ConnectivityResult.none)) {
       Print.red('NO CONNECTIVITY | ${request.getUrl()}',
           name: apiComPackageName);
 
@@ -259,7 +260,7 @@ class ComInterface {
 
   Future<bool> hasInternetConnection() async {
     final connectionStatus = await _connectivity.checkConnectivity();
-    return connectionStatus != ConnectivityResult.none;
+    return !connectionStatus.contains(ConnectivityResult.none);
   }
 
   Connectivity getConnectivityInstance() {
