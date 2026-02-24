@@ -17,8 +17,9 @@ class ComInterface {
     http.Response response,
     Stopwatch stopwatch,
   ) {
+    final payloadSizeMB = response.bodyBytes.length / (1024 * 1024);
     final statusMessagePayload =
-        'METHOD: ${response.request!.method}, STATUS: ${response.statusCode}, URL: ${response.request!.url}  ${stopwatch.elapsedMilliseconds} ms';
+        'METHOD: ${response.request!.method}, STATUS: ${response.statusCode}, URL: ${response.request!.url}  ${stopwatch.elapsedMilliseconds} ms  ${payloadSizeMB.toStringAsFixed(3)} MB';
 
     if (response.statusCode == 200) {
       Print.green(statusMessagePayload, name: apiComPackageName);
